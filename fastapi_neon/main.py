@@ -9,13 +9,18 @@ class Todo(SQLModel, table=True):
     id:Optional[int] = Field(default=None, primary_key=True)
     content:str = Field(index=True)
 
-db_url = str(settings.DATABASE_URL).replace(
+connection_string = str(settings.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg"
 )
 
 
 
-engine = create_engine(db_url, echo=True)
+engine = create_engine(
+    # db_url
+
+    connection_string, connect_args={"sslmode": "require"}, pool_recycle=300
+
+    )
 
 
 
