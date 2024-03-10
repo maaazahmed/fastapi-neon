@@ -37,3 +37,5 @@ run:
     - name: DATABASE_URL
 
       value-from: "arn:aws:ssm:us-east-1:045872955349:parameter/fastapi-neon/DATABASE_URL"
+
+      
