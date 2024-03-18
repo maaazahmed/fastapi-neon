@@ -1,6 +1,6 @@
 from sqlmodel import create_engine,select, Session, SQLModel
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi_neon.model.user_model import UserResponse, UserCreate,User, UserLogin, Token, TokenData
+from fastapi_neon.model.model import UserResponse, UserCreate,User, UserLogin, Token, TokenData
 from typing import Annotated
 from fastapi_neon.service import get_hashed_pass, verify_password,create_access_token, verify_token,ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
