@@ -8,7 +8,7 @@ from fastapi_neon.model.model import TokenData
 
 SECRET_KEY = "090e3ba2a1d93d843715cb8cec50e1730e20991c62b04e7e249ef9b378d1490c"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

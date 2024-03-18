@@ -8,7 +8,7 @@ class UserBase(SQLModel):
 
 class User(UserBase, table=True):
     id:int = Field(default=None,primary_key=True)
-    email:str = Field(index=True, unique=True)
+    email:str = Field(index=True, unique=True,  )
     password:str
     todos: List["Todos"] = Relationship(back_populates="user")
 
@@ -67,7 +67,8 @@ class TodoCreate(TodoBase):
 class TodoResponse(TodoBase):
      id:int = Field(default=None, primary_key=True)
      user_id:int
-    
+     status:Optional[str]
+     
      
 
 

@@ -1,7 +1,7 @@
 from sqlmodel import create_engine,select, Session, SQLModel
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status,Response
 from fastapi_neon.model.model import UserResponse, UserCreate,User,TodoUpdate, UserLogin, Token, TokenData, TodoCreate, TodoResponse,Todos,  TodoBase
-from typing import Annotated
+from typing import Annotated, List
 from fastapi_neon.service import get_hashed_pass, verify_password,create_access_token, verify_token,ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 from  fastapi_neon  import settings
@@ -52,7 +52,7 @@ async def create_user(user:UserCreate, db:Annotated[Session, Depends(get_session
 
 
 @app.post("/login", response_model=Token)
-async def login_user(login_data:UserLogin, db:Annotated[Session,Depends(get_session)]):
+async def login_user(login_data:UserLogin, db:Annotated[Session,Depends(get_session)],response: Response):
     statement = select(User).where(User.email == login_data.email)
     user = db.exec(statement).first()
     if user is not None:
@@ -61,7 +61,10 @@ async def login_user(login_data:UserLogin, db:Annotated[Session,Depends(get_sess
         else:
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(data={"email":user.email, "id":user.id}, expires_delta=access_token_expires)
-            return Token(access_token=access_token, token_type="bearer")
+            token_type="bearer"
+            response.headers["authorization"] = access_token
+            response.headers["type"] = token_type
+            return Token(access_token=access_token, token_type=token_type)
     else:
         raise HTTPException(status_code=404, detail="User not found") 
 
@@ -107,8 +110,8 @@ async def create_todo(todo:TodoCreate, db:Annotated[Session, Depends(get_session
 
 
 
-@app.patch("/todo{id}", response_model=TodoResponse)
-async def update_todo(todo:TodoUpdate,id:int,  db:Annotated[Session, Depends(get_session)],token_data:Annotated[TokenData, Depends(verify_token)]):
+@app.patch("/todo{id}", response_model=TodoResponse, dependencies=[Depends(verify_token)])
+async def update_todo(todo:TodoUpdate,id:int,  db:Annotated[Session, Depends(get_session)]):
         db_todo = db.get(Todos ,id)
         if not db_todo:
             raise HTTPException(status_code=404, detail="User not found")
@@ -118,13 +121,13 @@ async def update_todo(todo:TodoUpdate,id:int,  db:Annotated[Session, Depends(get
         db.add(db_todo)
         db.commit()
         db.refresh(db_todo)
-        return todo_data
+        return db_todo
 
 
 
 
 
-@app.get("/todos", response_model=list[TodoResponse])
+@app.get("/todos", response_model=List[TodoResponse])
 async def read_todos(db:Annotated[Session, Depends(get_session)],token_data:Annotated[TokenData, Depends(verify_token)]):
         statement = select(Todos).where(Todos.user_id == token_data.id)
         result = db.exec(statement).all()
@@ -134,11 +137,11 @@ async def read_todos(db:Annotated[Session, Depends(get_session)],token_data:Anno
 
 
 
-@app.get("/todo/{id}", response_model=TodoResponse)
-async def read_todo(id:int, db:Annotated[Session, Depends(get_session)],token_data:Annotated[TokenData, Depends(verify_token)]):
+@app.get("/todo/{id}", response_model=TodoResponse, dependencies=[Depends(verify_token)])
+async def read_todo(id:int, db:Annotated[Session, Depends(get_session)]):
         try:
-         statement = select(Todos).where(Todos.user_id == token_data.id,  Todos.id == id)
-         return  db.exec(statement).one()
+           item = db.get(Todos, id)  
+           return item
         except:
             raise HTTPException(status_code=404, detail="Item Not found")
 
@@ -146,14 +149,14 @@ async def read_todo(id:int, db:Annotated[Session, Depends(get_session)],token_da
 
 
 
-@app.delete("/todo/{id}", response_model=dict)
-async def delete_todo(id:int, db:Annotated[Session, Depends(get_session)],token_data:Annotated[TokenData, Depends(verify_token)]):
+@app.delete("/todo/{id}",dependencies=[Depends(verify_token)])
+async def delete_todo(id:int, db:Annotated[Session, Depends(get_session)]):
         item = db.get(Todos, id)
         if not item:
             raise HTTPException(status_code=404, detail="item not found")
         db.delete(item)
         db.commit()
-        return {"message":"successfully Removed"}
+        return {"message":"Successfully removed"}
        
 
 
