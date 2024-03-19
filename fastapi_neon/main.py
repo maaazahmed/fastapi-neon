@@ -23,7 +23,7 @@ def on_startup():
 
 def get_session():
     with Session(engine) as session:
-        return session
+        yield session
 
 @app.get("/")
 def read_root():
