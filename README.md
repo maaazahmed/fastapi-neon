@@ -1,5 +1,6 @@
-FastAPI-Neon TODO App
-A streamlined TODO app built with FastAPI, Neon for databases, and Poetry for dependencies.
+# FastAPI-Neon TODO App
+
+## A streamlined TODO app built with FastAPI, Neon for databases, and Poetry for dependencies.
 
 Features:
 
