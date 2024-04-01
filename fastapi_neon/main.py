@@ -5,20 +5,50 @@ from typing import Annotated, List
 from fastapi_neon.service import get_hashed_pass, verify_password,create_access_token, verify_token,ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 from  fastapi_neon  import settings
-app:FastAPI =  FastAPI()
+from  contextlib import asynccontextmanager
+
 
 
 connection_string = str(settings.DATABASE_URL).replace("postgresql", "postgresql+psycopg")
-
 engine = create_engine(connection_string, connect_args={"sslmode": "require"}, pool_recycle=300)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print(f"""
+    --------------------------------------------
+    ======== | Welcome to FastAPI | ========  
+        
+                PORT    :        8000
+                ---------------------
+                HOST    :   localhost
+                ---------------------
+                ENV     :         DEV
+                ---------------------
+                STATUS  :     WORKING
+        
+            URL => http://localhost:8000 
+    --------------------------------------------
+    """)
+    yield
+
+
+
+app:FastAPI =  FastAPI(lifespan=lifespan, title="FastAPI Neon Todo API", version="2.0.0", servers=[
+     {
+        "url": "http://localhost:8000",
+        "description": "Local server"
+    }
+])
+
+
+
+
+
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
 
 
 def get_session():
@@ -27,7 +57,7 @@ def get_session():
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "World", "message":"Welcome to FastAPI", }
 
 
 @app.post("/signup", response_model=Token)
@@ -88,7 +118,6 @@ async def get_user(db:Annotated[Session, Depends(get_session)],token_data:Annota
     if not response:
         raise credentials_exception
     return response
-
 
 
 
