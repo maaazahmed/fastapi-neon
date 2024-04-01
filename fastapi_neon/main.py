@@ -43,9 +43,6 @@ app:FastAPI =  FastAPI(lifespan=lifespan, title="FastAPI Neon Todo API", version
 
 
 
-
-
-
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
@@ -140,7 +137,7 @@ async def create_todo(todo:TodoCreate, db:Annotated[Session, Depends(get_session
 
 
 @app.patch("/todo{id}", response_model=TodoResponse, dependencies=[Depends(verify_token)])
-async def update_todo(todo:TodoUpdate,id:int,  db:Annotated[Session, Depends(get_session)]):
+async def update_todo(todo:TodoUpdate,id:int, db:Annotated[Session, Depends(get_session)]):
         db_todo = db.get(Todos ,id)
         if not db_todo:
             raise HTTPException(status_code=404, detail="User not found")
